@@ -1,0 +1,76 @@
+{
+  "variables": {
+    "volume_size_tmp": "10",
+    "volume_size_var": "10",
+    "volume_size_var_log": "10",
+    "volume_size_var_log_audit": "10",
+    "volume_size_home": "10"
+  },
+  "builders": [
+    {
+      "type": "amazon-ebssurrogate",
+      "instance_type": "t2.micro",
+      "ssh_username": "admin",
+      "source_ami": "ami-5907843d",
+      "ami_virtualization_type": "hvm",
+      "ami_name": "massiveco-alpine-3.7",
+      "ami_description": "Minimal Alpine linux install",
+      "region": "ca-central-1",
+      "encrypt_boot": true,
+      "launch_block_device_mappings": [
+        {
+          "volume_type": "gp2",
+          "device_name": "/dev/xvdf",
+          "delete_on_termination": true,
+          "volume_size": 5
+        }
+      ],
+      "ami_root_device": {
+        "source_device_name": "/dev/xvdf",
+        "device_name": "/dev/xvda",
+        "delete_on_termination": true,
+        "volume_size": 10,
+        "volume_type": "gp2"
+      },
+      "ami_block_device_mappings": [
+        {
+          "device_name": "/dev/xvdg",
+          "volume_size": "{{ user `volume_size_tmp`}}",
+          "delete_on_termination": true,
+          "encrypted": true
+        },
+        {
+          "device_name": "/dev/xvdh",
+          "volume_size": "{{ user `volume_size_var`}}",
+          "delete_on_termination": true,
+          "encrypted": true
+        },
+        {
+          "device_name": "/dev/xvdi",
+          "volume_size": "{{ user `volume_size_var_log`}}",
+          "delete_on_termination": true,
+          "encrypted": true
+        },
+        {
+          "device_name": "/dev/xvdj",
+          "volume_size": "{{ user `volume_size_var_log_audit`}}",
+          "delete_on_termination": true,
+          "encrypted": true
+        },
+        {
+          "device_name": "/dev/xvdk",
+          "volume_size": "{{ user `volume_size_home`}}",
+          "delete_on_termination": true,
+          "encrypted": true
+        }
+      ]
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell",
+      "script": "build.sh",
+      "execute_command": "sudo sh -c '{{ .Vars }} {{ .Path }}'"
+    }
+  ]
+}
