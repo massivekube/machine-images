@@ -31,19 +31,29 @@ install -Dm644 /etc/resolv.conf /mnt/target/etc/resolv.conf
 
 apk add --root /mnt/target --update-cache --initdb alpine-base
 
-chroot "/mnt/target" apk add --no-cache --update chrony e2fsprogs mkinitfs openssh sudo tzdata
-chroot "/mnt/target" apk del ntpd
-chroot "/mnt/target" apk add --no-cache --no-scripts syslinux linux-vanilla
+chroot /mnt/target apk add --no-cache --update linux-hardened chrony e2fsprogs mkinitfs openssh sudo tzdata
+chroot /mnt/target apk del ntpd
+chroot /mnt/target apk add --no-cache --no-scripts syslinux
 
-chroot "/mnt/target" /sbin/mkinitfs $(basename $(find /mnt/target/lib/modules/* -maxdepth 0))
+sed -Ei '/^tty\d/s/^/#/' /mnt/target/etc/inittab
 
-sed -Ei -e "s|^[# ]*(root)=.*|\1=LABEL=/|" \
-		-e "s|^[# ]*(default_kernel_opts)=.*|\1=\"console=ttyS0 console=tty0 audit=1 cgroup_enable=memory swapaccount=1\"|" \
+chroot /mnt/target /sbin/mkinitfs $(basename $(find /mnt/target/lib/modules/* -maxdepth 0))
+
+	sed -Ei -e "s|^[# ]*(root)=.*|\1=LABEL=/|" \
+		-e "s|^[# ]*(default_kernel_opts)=.*|\1=\"console=ttyS0 console=tty0\"|" \
 		-e "s|^[# ]*(serial_port)=.*|\1=ttyS0|" \
-		-e "s|^[# ]*(modules)=.*|\1=ext4|" \
-		-e "s|^[# ]*(default)=.*|\1=vanilla|" \
-		-e "s|^[# ]*(timeout)=.*|\1=0|" \
+		-e "s|^[# ]*(modules)=.*|\1=sd-mod,usb-storage,ext4|" \
+		-e "s|^[# ]*(default)=.*|\1=hardened|" \
+		-e "s|^[# ]*(timeout)=.*|\1=1|" \
 		/mnt/target/etc/update-extlinux.conf
+
+# sed -Ei -e "s|^[# ]*(root)=.*|\1=LABEL=/|" \
+# 		-e "s|^[# ]*(default_kernel_opts)=.*|\1=\"console=ttyS0 console=tty0 audit=1 cgroup_enable=memory swapaccount=1\"|" \
+# 		-e "s|^[# ]*(serial_port)=.*|\1=ttyS0|" \
+# 		-e "s|^[# ]*(modules)=.*|\1=sd-mod,usb-storage,ext4|" \
+# 		-e "s|^[# ]*(default)=.*|\1=hardened|" \
+# 		-e "s|^[# ]*(timeout)=.*|\1=1|" \
+# 		/mnt/target/etc/update-extlinux.conf
 
 chroot /mnt/target /sbin/extlinux --install /boot
 chroot /mnt/target /sbin/update-extlinux --warn-only
@@ -79,23 +89,41 @@ chroot /mnt/target rc-update add bootmisc boot
 chroot /mnt/target rc-update add syslog boot
 chroot /mnt/target rc-update add acpid boot
 
-
 chroot /mnt/target rc-update add killprocs shutdown
 chroot /mnt/target rc-update add savecache shutdown
 chroot /mnt/target rc-update add mount-ro shutdown
 
 # default config
-
 cat > /mnt/target/etc/chrony/chrony.conf <<-EOF
 server 169.254.169.123 prefer iburst
 driftfile /var/lib/chrony/chrony.drift
 rtcsync
 EOF
 
-sed -i '/%wheel .* NOPASSWD: .*/s/^# //' "$target"/etc/sudoers
-
+sed -i '/%wheel .* NOPASSWD: .*/s/^# //' /mnt/target/etc/sudoers
 
 chroot /mnt/target /usr/sbin/addgroup alpine
 chroot /mnt/target /usr/sbin/adduser -h /home/alpine -s /bin/sh -G alpine -D alpine
 chroot /mnt/target /usr/sbin/addgroup alpine wheel
 chroot /mnt/target /usr/bin/passwd -u alpine
+
+chroot /mnt/target mkdir /home/alpine/.ssh/
+
+cp /tmp/assets/authorized_keys /mnt/target/home/alpine/.ssh/authorized_keys
+
+chroot /mnt/target chown alpine:alpine -R /home/alpine/.ssh/
+chroot /mnt/target chmod 0700 /home/alpine/.ssh/
+chroot /mnt/target chmod 0600 /home/alpine/.ssh/authorized_keys
+
+rm -f \
+	/mnt/target/var/cache/apk/* \
+	/mnt/target/etc/resolv.conf \
+	/mnt/target/root/.ash_history \
+	/mnt/target/etc/*-
+
+umount \
+	/mnt/target/dev \
+	/mnt/target/proc \
+	/mnt/target/sys
+
+umount /mnt/target

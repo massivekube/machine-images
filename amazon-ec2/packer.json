@@ -11,12 +11,12 @@
       "type": "amazon-ebssurrogate",
       "instance_type": "t2.micro",
       "ssh_username": "admin",
-      "source_ami": "ami-5907843d",
+      "source_ami": "ami-810b35e4",
       "ami_virtualization_type": "hvm",
-      "ami_name": "massiveco-alpine-3.7",
+      "ami_name": "massivekube-alpine-3.7",
       "ami_description": "Minimal Alpine linux install",
-      "region": "ca-central-1",
-      "encrypt_boot": true,
+      "encrypt_boot": false,
+      "force_deregister": true,
       "launch_block_device_mappings": [
         {
           "volume_type": "gp2",
@@ -29,44 +29,17 @@
         "source_device_name": "/dev/xvdf",
         "device_name": "/dev/xvda",
         "delete_on_termination": true,
-        "volume_size": 10,
+        "volume_size": 5,
         "volume_type": "gp2"
-      },
-      "ami_block_device_mappings": [
-        {
-          "device_name": "/dev/xvdg",
-          "volume_size": "{{ user `volume_size_tmp`}}",
-          "delete_on_termination": true,
-          "encrypted": true
-        },
-        {
-          "device_name": "/dev/xvdh",
-          "volume_size": "{{ user `volume_size_var`}}",
-          "delete_on_termination": true,
-          "encrypted": true
-        },
-        {
-          "device_name": "/dev/xvdi",
-          "volume_size": "{{ user `volume_size_var_log`}}",
-          "delete_on_termination": true,
-          "encrypted": true
-        },
-        {
-          "device_name": "/dev/xvdj",
-          "volume_size": "{{ user `volume_size_var_log_audit`}}",
-          "delete_on_termination": true,
-          "encrypted": true
-        },
-        {
-          "device_name": "/dev/xvdk",
-          "volume_size": "{{ user `volume_size_home`}}",
-          "delete_on_termination": true,
-          "encrypted": true
-        }
-      ]
+      }
     }
   ],
   "provisioners": [
+    {
+      "type": "file",
+      "source": "assets",
+      "destination": "/tmp/assets"
+    },
     {
       "type": "shell",
       "script": "build.sh",
