@@ -17,21 +17,21 @@ mount -t proc none /mnt/target/proc
 mount --bind /dev /mnt/target/dev
 mount --bind /sys /mnt/target/sys
 
-wget -O /tmp/apk-tools.tar.gz https://github.com/alpinelinux/apk-tools/releases/download/v2.8.2/apk-tools-2.8.2-x86_64-linux.tar.gz
+wget -O /tmp/apk-tools.tar.gz http://dl-cdn.alpinelinux.org/alpine/v3.8/main/x86_64/apk-tools-2.10.0-r0.apk
 tar -xf /tmp/apk-tools.tar.gz --strip-components=1 -C /usr/bin
 
-wget -O /tmp/alpine-keys.apk http://dl-cdn.alpinelinux.org/alpine/v3.7/main/x86_64/alpine-keys-2.1-r1.apk
+wget -O /tmp/alpine-keys.apk http://dl-cdn.alpinelinux.org/alpine/v3.8/main/x86_64/alpine-keys-2.1-r1.apk
 apk add --root /mnt/target /tmp/alpine-keys.apk --initdb --allow-untrusted
 
 cat > /mnt/target/etc/apk/repositories <<-EOF
-http://dl-cdn.alpinelinux.org/alpine/v3.7/main
+http://dl-cdn.alpinelinux.org/alpine/v3.8/main
 EOF
 
 install -Dm644 /etc/resolv.conf /mnt/target/etc/resolv.conf
 
 apk add --root /mnt/target --update-cache --initdb alpine-base
 
-chroot /mnt/target apk add --no-cache --update linux-hardened chrony e2fsprogs mkinitfs openssh sudo tzdata
+chroot /mnt/target apk add --no-cache --update linux-virt chrony e2fsprogs mkinitfs openssh sudo tzdata
 chroot /mnt/target apk del ntpd
 chroot /mnt/target apk add --no-cache --no-scripts syslinux
 
@@ -40,20 +40,12 @@ sed -Ei '/^tty\d/s/^/#/' /mnt/target/etc/inittab
 chroot /mnt/target /sbin/mkinitfs $(basename $(find /mnt/target/lib/modules/* -maxdepth 0))
 
 	sed -Ei -e "s|^[# ]*(root)=.*|\1=LABEL=/|" \
-		-e "s|^[# ]*(default_kernel_opts)=.*|\1=\"console=ttyS0 console=tty0\"|" \
+		-e "s|^[# ]*(default_kernel_opts)=.*|\1=\"console=ttyS0 console=tty0 audit=1 cgroup_enable=memory swapaccount=1\"|" \
 		-e "s|^[# ]*(serial_port)=.*|\1=ttyS0|" \
 		-e "s|^[# ]*(modules)=.*|\1=sd-mod,usb-storage,ext4|" \
-		-e "s|^[# ]*(default)=.*|\1=hardened|" \
+		-e "s|^[# ]*(default)=.*|\1=virt|" \
 		-e "s|^[# ]*(timeout)=.*|\1=1|" \
 		/mnt/target/etc/update-extlinux.conf
-
-# sed -Ei -e "s|^[# ]*(root)=.*|\1=LABEL=/|" \
-# 		-e "s|^[# ]*(default_kernel_opts)=.*|\1=\"console=ttyS0 console=tty0 audit=1 cgroup_enable=memory swapaccount=1\"|" \
-# 		-e "s|^[# ]*(serial_port)=.*|\1=ttyS0|" \
-# 		-e "s|^[# ]*(modules)=.*|\1=sd-mod,usb-storage,ext4|" \
-# 		-e "s|^[# ]*(default)=.*|\1=hardened|" \
-# 		-e "s|^[# ]*(timeout)=.*|\1=1|" \
-# 		/mnt/target/etc/update-extlinux.conf
 
 chroot /mnt/target /sbin/extlinux --install /boot
 chroot /mnt/target /sbin/update-extlinux --warn-only
@@ -100,6 +92,7 @@ driftfile /var/lib/chrony/chrony.drift
 rtcsync
 EOF
 
+## TEMPORARY HACK ##
 sed -i '/%wheel .* NOPASSWD: .*/s/^# //' /mnt/target/etc/sudoers
 
 chroot /mnt/target /usr/sbin/addgroup alpine
@@ -114,6 +107,8 @@ cp /tmp/assets/authorized_keys /mnt/target/home/alpine/.ssh/authorized_keys
 chroot /mnt/target chown alpine:alpine -R /home/alpine/.ssh/
 chroot /mnt/target chmod 0700 /home/alpine/.ssh/
 chroot /mnt/target chmod 0600 /home/alpine/.ssh/authorized_keys
+
+## TEMPORARY HACK ##
 
 rm -f \
 	/mnt/target/var/cache/apk/* \
