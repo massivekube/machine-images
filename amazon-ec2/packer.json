@@ -21,7 +21,7 @@
         "most_recent": true
       },
       "ami_virtualization_type": "hvm",
-      "ami_name": "massivekube-alpine-3.7",
+      "ami_name": "massivekube-alpinelinux-3.8",
       "ami_description": "Minimal Alpine linux install",
       "encrypt_boot": false,
       "force_deregister": true,
