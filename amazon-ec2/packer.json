@@ -11,7 +11,15 @@
       "type": "amazon-ebssurrogate",
       "instance_type": "t2.micro",
       "ssh_username": "admin",
-      "source_ami": "ami-810b35e4",
+      "source_ami_filter": {
+        "filters": {
+          "virtualization-type": "hvm",
+          "name": "debian-stretch-hvm-x86_64*",
+          "root-device-type": "ebs"
+        },
+        "owners": ["379101102735"],
+        "most_recent": true
+      },
       "ami_virtualization_type": "hvm",
       "ami_name": "massivekube-alpine-3.7",
       "ami_description": "Minimal Alpine linux install",
