@@ -9,6 +9,7 @@
   "builders": [
     {
       "type": "amazon-ebssurrogate",
+      "region": "us-east-2",
       "instance_type": "t2.micro",
       "ssh_username": "admin",
       "source_ami_filter": {

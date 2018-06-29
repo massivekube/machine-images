@@ -17,10 +17,8 @@ mount -t proc none /mnt/target/proc
 mount --bind /dev /mnt/target/dev
 mount --bind /sys /mnt/target/sys
 
-cd /tmp
-wget -O apk-tools.tar.gz http://dl-cdn.alpinelinux.org/alpine/v3.8/main/x86_64/apk-tools-static-2.10.0-r0.apk
-tar -xf apk-tools.tar.gz
-mv ./sbin/apk.static /usr/bin/apk
+wget -O /tmp/apk-tools.tar.gz https://github.com/alpinelinux/apk-tools/releases/download/v2.8.2/apk-tools-2.8.2-x86_64-linux.tar.gz
+tar -xf /tmp/apk-tools.tar.gz --strip-components=1 -C /usr/bin
 
 wget -O /tmp/alpine-keys.apk http://dl-cdn.alpinelinux.org/alpine/v3.8/main/x86_64/alpine-keys-2.1-r1.apk
 apk add --root /mnt/target /tmp/alpine-keys.apk --initdb --allow-untrusted
@@ -33,7 +31,8 @@ install -Dm644 /etc/resolv.conf /mnt/target/etc/resolv.conf
 
 apk add --root /mnt/target --update-cache --initdb alpine-base
 
-chroot /mnt/target apk add --no-cache --update linux-virt chrony e2fsprogs mkinitfs openssh sudo tzdata
+chroot /mnt/target apk add --no-cache --update linux-hardened chrony e2fsprogs mkinitfs openssh sudo tzdata
+chroot /mnt/target apk del ntpd
 chroot /mnt/target apk add --no-cache --no-scripts syslinux
 
 sed -Ei '/^tty\d/s/^/#/' /mnt/target/etc/inittab
@@ -43,8 +42,8 @@ chroot /mnt/target /sbin/mkinitfs $(basename $(find /mnt/target/lib/modules/* -m
 	sed -Ei -e "s|^[# ]*(root)=.*|\1=LABEL=/|" \
 		-e "s|^[# ]*(default_kernel_opts)=.*|\1=\"console=ttyS0 console=tty0 audit=1 cgroup_enable=memory swapaccount=1\"|" \
 		-e "s|^[# ]*(serial_port)=.*|\1=ttyS0|" \
-		-e "s|^[# ]*(modules)=.*|\1=sd-mod,usb-storage,ext4|" \
-		-e "s|^[# ]*(default)=.*|\1=virt|" \
+		-e "s|^[# ]*(modules)=.*|\1=ext4|" \
+		-e "s|^[# ]*(default)=.*|\1=hardened|" \
 		-e "s|^[# ]*(timeout)=.*|\1=1|" \
 		/mnt/target/etc/update-extlinux.conf
 
@@ -110,16 +109,3 @@ chroot /mnt/target chmod 0700 /home/alpine/.ssh/
 chroot /mnt/target chmod 0600 /home/alpine/.ssh/authorized_keys
 
 ## TEMPORARY HACK ##
-
-rm -f \
-	/mnt/target/var/cache/apk/* \
-	/mnt/target/etc/resolv.conf \
-	/mnt/target/root/.ash_history \
-	/mnt/target/etc/*-
-
-umount \
-	/mnt/target/dev \
-	/mnt/target/proc \
-	/mnt/target/sys
-
-umount /mnt/target
