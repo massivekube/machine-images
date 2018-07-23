@@ -1,6 +1,8 @@
 #!/bin/bash
 # Heavily inspired by https://github.com/mcrute/alpine-ec2-ami/blob/master/make_ami.sh
 
+set -e
+
 apt update
 apt install e2fsprogs
 
@@ -40,13 +42,13 @@ sed -Ei '/^tty\d/s/^/#/' /mnt/target/etc/inittab
 
 chroot /mnt/target /sbin/mkinitfs $(basename $(find /mnt/target/lib/modules/* -maxdepth 0))
 
-	sed -Ei -e "s|^[# ]*(root)=.*|\1=LABEL=/|" \
-		-e "s|^[# ]*(default_kernel_opts)=.*|\1=\"console=ttyS0 console=tty0 audit=1 cgroup_enable=memory swapaccount=1\"|" \
-		-e "s|^[# ]*(serial_port)=.*|\1=ttyS0|" \
-		-e "s|^[# ]*(modules)=.*|\1=sd-mod,usb-storage,ext4|" \
-		-e "s|^[# ]*(default)=.*|\1=virt|" \
-		-e "s|^[# ]*(timeout)=.*|\1=1|" \
-		/mnt/target/etc/update-extlinux.conf
+sed -Ei -e "s|^[# ]*(root)=.*|\1=LABEL=/|" \
+	-e "s|^[# ]*(default_kernel_opts)=.*|\1=\"console=ttyS0 console=tty0 audit=1 cgroup_enable=memory swapaccount=1\"|" \
+	-e "s|^[# ]*(serial_port)=.*|\1=ttyS0|" \
+	-e "s|^[# ]*(modules)=.*|\1=sd-mod,usb-storage,ext4|" \
+	-e "s|^[# ]*(default)=.*|\1=virt|" \
+	-e "s|^[# ]*(timeout)=.*|\1=1|" \
+	/mnt/target/etc/update-extlinux.conf
 
 chroot /mnt/target /sbin/extlinux --install /boot
 chroot /mnt/target /sbin/update-extlinux --warn-only
@@ -116,6 +118,8 @@ rm -f \
 	/mnt/target/etc/resolv.conf \
 	/mnt/target/root/.ash_history \
 	/mnt/target/etc/*-
+
+sync
 
 umount \
 	/mnt/target/dev \
