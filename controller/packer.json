@@ -1,0 +1,26 @@
+{
+  "builders": [
+    {
+      "type": "amazon-ebs",
+      "region": "us-east-2",
+      "source_ami": "ami-2a13294f",
+      "instance_type": "t2.micro",
+      "ssh_username": "alpine",
+      "force_deregister": true,
+      "ssh_private_key_file": "/Users/deedubs/.ssh/deedubs.unlocked.key",
+      "ami_name": "massivekube-alpinelinux-3.8-controller",
+      "tags": {
+        "Name": "Ma.ssive Alpine Linux - 3.8 Controller",
+        "Role": "controller",
+        "Version": "3.8"
+      }
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell",
+      "script": "controller/build.sh",
+      "execute_command": "sudo sh -c '{{ .Vars }} {{ .Path }}'"
+    }
+  ]
+}

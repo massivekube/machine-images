@@ -1,5 +1,6 @@
 
-build: amazon-ec2/packer.json
-	packer build amazon-ec2/packer.json
+base: base/packer.json
+	packer build base/packer.json
 
-.PHONY: build
+controller: controller/packer.json
+	packer build controller/packer.json
