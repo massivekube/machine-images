@@ -3,7 +3,13 @@
     {
       "type": "amazon-ebs",
       "region": "us-east-2",
-      "source_ami": "ami-2a13294f",
+      "source_ami_filter": {
+        "filters": {
+          "name": "massivekube-alpinelinux-3.8"
+        },
+        "owners": ["self"],
+        "most_recent": true
+      },
       "instance_type": "t2.micro",
       "ssh_username": "alpine",
       "force_deregister": true,
