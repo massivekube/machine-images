@@ -6,6 +6,7 @@ set -e
 apt update
 apt install e2fsprogs
 
+# Format/Label the target EBS volume
 mkfs.ext4 /dev/xvdf
 mkdir /mnt/target
 mount /dev/xvdf /mnt/target
@@ -41,7 +42,7 @@ install -Dm644 /etc/resolv.conf /mnt/target/etc/resolv.conf
 
 apk add --root /mnt/target --update-cache --initdb alpine-base
 
-chroot /mnt/target apk add --no-cache --update linux-virt chrony e2fsprogs mkinitfs openssh sudo tzdata headstart aws-hostname
+chroot /mnt/target apk add --no-cache --update linux-vanilla chrony e2fsprogs mkinitfs openssh sudo tzdata headstart aws-hostname
 chroot /mnt/target apk add --no-cache --no-scripts syslinux
 
 sed -Ei '/^tty\d/s/^/#/' /mnt/target/etc/inittab
@@ -52,7 +53,7 @@ sed -Ei -e "s|^[# ]*(root)=.*|\1=LABEL=/|" \
 	-e "s|^[# ]*(default_kernel_opts)=.*|\1=\"console=ttyS0 console=tty0 audit=1 cgroup_enable=memory swapaccount=1\"|" \
 	-e "s|^[# ]*(serial_port)=.*|\1=ttyS0|" \
 	-e "s|^[# ]*(modules)=.*|\1=sd-mod,usb-storage,ext4|" \
-	-e "s|^[# ]*(default)=.*|\1=virt|" \
+  -e "s|^[# ]*(default)=.*|\1=vanilla|" \
 	-e "s|^[# ]*(timeout)=.*|\1=1|" \
 	/mnt/target/etc/update-extlinux.conf
 
@@ -130,10 +131,4 @@ umount \
 	/mnt/target/proc \
 	/mnt/target/sys
 
-# umount /mnt/target
-
-# sync
-
-# echo 3 > /proc/sys/vm/drop_caches
-
-sleep 60
+umount /mnt/target
