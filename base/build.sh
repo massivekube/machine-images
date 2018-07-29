@@ -42,7 +42,7 @@ install -Dm644 /etc/resolv.conf /mnt/target/etc/resolv.conf
 
 apk add --root /mnt/target --update-cache --initdb alpine-base
 
-chroot /mnt/target apk add --no-cache --update linux-vanilla chrony e2fsprogs mkinitfs openssh sudo tzdata headstart aws-hostname
+chroot /mnt/target apk add --no-cache --update ca-certificates linux-vanilla chrony e2fsprogs mkinitfs openssh sudo tzdata monit headstart aws-hostname
 chroot /mnt/target apk add --no-cache --no-scripts syslinux
 
 sed -Ei '/^tty\d/s/^/#/' /mnt/target/etc/inittab
@@ -52,7 +52,7 @@ chroot /mnt/target /sbin/mkinitfs $(basename $(find /mnt/target/lib/modules/* -m
 sed -Ei -e "s|^[# ]*(root)=.*|\1=LABEL=/|" \
 	-e "s|^[# ]*(default_kernel_opts)=.*|\1=\"console=ttyS0 console=tty0 audit=1 cgroup_enable=memory swapaccount=1\"|" \
 	-e "s|^[# ]*(serial_port)=.*|\1=ttyS0|" \
-	-e "s|^[# ]*(modules)=.*|\1=sd-mod,usb-storage,ext4|" \
+	-e "s|^[# ]*(modules)=.*|\1=usb-storage,ext4|" \
   -e "s|^[# ]*(default)=.*|\1=vanilla|" \
 	-e "s|^[# ]*(timeout)=.*|\1=1|" \
 	/mnt/target/etc/update-extlinux.conf
