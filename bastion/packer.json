@@ -1,0 +1,32 @@
+{
+  "builders": [
+    {
+      "type": "amazon-ebs",
+      "region": "us-east-2",
+      "source_ami_filter": {
+        "filters": {
+          "name": "massivekube-alpinelinux-3.8"
+        },
+        "owners": ["self"],
+        "most_recent": true
+      },
+      "instance_type": "t2.micro",
+      "ssh_username": "alpine",
+      "force_deregister": true,
+      "ssh_private_key_file": "/Users/deedubs/.ssh/deedubs.unlocked.key",
+      "ami_name": "massivekube-alpinelinux-3.8-bastion",
+      "tags": {
+        "Name": "Ma.ssive Alpine Linux - 3.8 Bastion",
+        "Role": "bastion",
+        "Version": "3.8"
+      }
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell",
+      "script": "bastion/build.sh",
+      "execute_command": "sudo sh -c '{{ .Vars }} {{ .Path }}'"
+    }
+  ]
+}
