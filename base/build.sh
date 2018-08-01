@@ -76,6 +76,7 @@ EOF
 chroot /mnt/target rc-update add sshd default
 chroot /mnt/target rc-update add chronyd default
 chroot /mnt/target rc-update add networking default
+chroot /mnt/target rc-update add aws-hostname default
 
 chroot /mnt/target rc-update add devfs sysinit
 chroot /mnt/target rc-update add dmesg sysinit
