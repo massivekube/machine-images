@@ -17,11 +17,11 @@ mount -t proc none /mnt/target/proc
 mount --bind /dev /mnt/target/dev
 mount --bind /sys /mnt/target/sys
 
-wget -O /tmp/apk-tools.tar.gz http://dl-cdn.alpinelinux.org/alpine/v3.8/main/x86_64/apk-tools-2.10.0-r0.apk
-tar -xf /tmp/apk-tools.tar.gz --strip-components=1 -C /usr/bin
+wget -O /tmp/apk-tools.tar.gz http://dl-cdn.alpinelinux.org/alpine/v3.8/main/x86_64/apk-tools-static-2.10.0-r3.apk
+tar -xf /tmp/apk-tools.tar.gz 
 
 wget -O /tmp/alpine-keys.apk http://dl-cdn.alpinelinux.org/alpine/v3.8/main/x86_64/alpine-keys-2.1-r1.apk
-apk add --root /mnt/target /tmp/alpine-keys.apk --initdb --allow-untrusted
+./sbin/apk.static add --root /mnt/target /tmp/alpine-keys.apk --initdb --allow-untrusted
 
 cat > /mnt/target/etc/apk/repositories <<-EOF
 http://dl-cdn.alpinelinux.org/alpine/v3.8/main
@@ -29,7 +29,7 @@ EOF
 
 install -Dm644 /etc/resolv.conf /mnt/target/etc/resolv.conf
 
-apk add --root /mnt/target --update-cache --initdb alpine-base
+./sbin/apk.static add --root /mnt/target --update-cache --initdb alpine-base
 
 chroot /mnt/target apk add --no-cache --update linux-virt chrony e2fsprogs mkinitfs openssh sudo tzdata
 chroot /mnt/target apk del ntpd
