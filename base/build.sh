@@ -73,6 +73,12 @@ auto eth0
 iface eth0 inet dhcp
 EOF
 
+cat > /mnt/target/etc/profile.d/aws_region.sh <<-EOF
+export AWS_REGION=us-east-2
+EOF
+
+chmod +x /mnt/target/etc/profile.d/aws_region.sh
+
 chroot /mnt/target rc-update add sshd default
 chroot /mnt/target rc-update add chronyd default
 chroot /mnt/target rc-update add networking default
