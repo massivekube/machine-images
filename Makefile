@@ -1,9 +1,11 @@
 
-base: base/packer.json
+base:
 	packer build base/packer.json
 
-controller: controller/packer.json base/packer.json
+controller:
 	packer build controller/packer.json
 
-bastion: bastion/packer.json base/packer.json
+bastion:
 	packer build bastion/packer.json
+
+.PHONY: base controller bastion
